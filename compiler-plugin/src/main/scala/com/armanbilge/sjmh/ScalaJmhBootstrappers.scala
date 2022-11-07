@@ -16,13 +16,11 @@
 
 package com.armanbilge.sjmh
 
-import dotty.tools.dotc.ast.tpd.ClassDef
-import dotty.tools.dotc.ast.tpd.PackageDef
-import dotty.tools.dotc.ast.tpd.Tree
-import dotty.tools.dotc.ast.tpd.TypeDef
+import dotty.tools.dotc.ast.tpd.*
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags.*
 import dotty.tools.dotc.core.Scopes.*
+import dotty.tools.dotc.core.StdNames.*
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.plugins.PluginPhase
 import dotty.tools.dotc.sbt
@@ -82,7 +80,7 @@ class ScalaJmhBootstrappers extends PluginPhase {
     ).entered
     val classSym = moduleSym.moduleClass.asClass
 
-    val constr = ???
+    val constr = genConstructor(classSym)
 
     val testMethods = ???
 
@@ -91,6 +89,19 @@ class ScalaJmhBootstrappers extends PluginPhase {
     sbt.APIUtils.registerDummyClass(classSym)
 
     ClassDef(classSym, constr, defs)
+  }
+
+  private def genConstructor(owner: ClassSymbol)(using Context): DefDef = {
+    val sym = newDefaultConstructor(owner).entered
+    DefDef(
+      sym,
+      Block(
+        Super(This(owner), tpnme.EMPTY)
+          .select(defn.ObjectClass.primaryConstructor)
+          .appliedToNone :: Nil,
+        unitLiteral,
+      ),
+    )
   }
 
 }
