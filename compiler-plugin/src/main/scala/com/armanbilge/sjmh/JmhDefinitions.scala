@@ -45,4 +45,13 @@ final class JmhDefinitions()(using ctx: Context) {
     requiredClassRef("org.openjdk.jmh.annotations.Param")
   def ParamAnnotClass(using Context): ClassSymbol = ParamAnnotType.symbol.asClass
 
+  @threadUnsafe lazy val BootstrapperType: TypeRef =
+    requiredClassRef("com.armanbilge.sjmh.Bootstrapper")
+
+  @threadUnsafe lazy val BenchmarkMetadataType: TypeRef =
+    requiredClassRef("com.armanbilge.sjmh.BenchmarkMetadata")
+
+  @threadUnsafe lazy val ParamMetadataType: TypeRef =
+    requiredClassRef("com.armanbilge.sjmh.ParamMetadata")
+
 }

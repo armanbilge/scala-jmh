@@ -16,12 +16,16 @@
 
 package com.armanbilge.sjmh
 
+import dotty.tools.dotc.ast.tpd.ClassDef
 import dotty.tools.dotc.ast.tpd.PackageDef
 import dotty.tools.dotc.ast.tpd.Tree
+import dotty.tools.dotc.ast.tpd.TypeDef
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags.*
+import dotty.tools.dotc.core.Scopes.*
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.plugins.PluginPhase
+import dotty.tools.dotc.sbt
 import dotty.tools.dotc.transform
 
 import scala.annotation.tailrec
@@ -31,6 +35,8 @@ class ScalaJmhBootstrappers extends PluginPhase {
   def phaseName: String = "scala-jmhBootstrappers"
 
   override val runsAfter = Set(transform.Mixin.name)
+
+  final val bootstrapperSuffix = "$scalajmh$bootstrapper"
 
   override def transformPackageDef(tree: PackageDef)(using Context): Tree = {
     val jmhdefn = JmhDefinitions.defnJmh
@@ -46,7 +52,45 @@ class ScalaJmhBootstrappers extends PluginPhase {
         !sym.isOneOf(ModuleClass | Abstract | Trait) &&
         hasBenchmarks(sym.asClass)
 
-    ???
+    val bootstrappers = tree.stats.collect {
+      case clDef: TypeDef if isBenchmarkClass(clDef.symbol) =>
+        genBootstrapper(clDef.symbol.asClass)
+    }
+
+    if (bootstrappers.isEmpty) tree
+    else cpy.PackageDef(tree)(tree.pid, tree.stats ::: bootstrappers)
+  }
+
+  private def genBootstrapper(
+      testClass: ClassSymbol,
+  )(using Context): TypeDef = {
+    val jmhdefn = JmhDefinitions.defnJmh
+
+    val bootstrapperName =
+      (testClass.name ++ bootstrapperSuffix).toTermName
+
+    val owner = testClass.owner
+    val moduleSym = newCompleteModuleSymbol(
+      owner,
+      bootstrapperName,
+      Synthetic,
+      Synthetic,
+      List(defn.ObjectType, jmhdefn.BootstrapperType),
+      newScope,
+      coord = testClass.span,
+      assocFile = testClass.assocFile,
+    ).entered
+    val classSym = moduleSym.moduleClass.asClass
+
+    val constr = ???
+
+    val testMethods = ???
+
+    val defs = List()
+
+    sbt.APIUtils.registerDummyClass(classSym)
+
+    ClassDef(classSym, constr, defs)
   }
 
 }
