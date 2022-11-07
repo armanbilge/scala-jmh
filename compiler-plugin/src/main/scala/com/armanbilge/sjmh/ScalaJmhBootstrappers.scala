@@ -113,4 +113,13 @@ class ScalaJmhBootstrappers extends PluginPhase {
       .map(_.symbol)
       .toList
 
+  private def annotatedVars(owner: ClassSymbol, annot: Symbol)(using
+      Context,
+  ): List[Symbol] =
+    owner.info
+      .membersBasedOnFlags(Mutable, EmptyFlags)
+      .filter(_.symbol.hasAnnotation(annot))
+      .map(_.symbol)
+      .toList
+
 }
