@@ -82,7 +82,7 @@ class ScalaJmhBootstrappers extends PluginPhase {
 
     val constr = genConstructor(classSym)
 
-    val testMethods = ???
+    val testMethods = annotatedMethods(testClass, jmhdefn.BenchmarkAnnotClass)
 
     val defs = List()
 
@@ -103,5 +103,14 @@ class ScalaJmhBootstrappers extends PluginPhase {
       ),
     )
   }
+
+  private def annotatedMethods(owner: ClassSymbol, annot: Symbol)(using
+      Context,
+  ): List[Symbol] =
+    owner.info
+      .membersBasedOnFlags(Method, EmptyFlags)
+      .filter(_.symbol.hasAnnotation(annot))
+      .map(_.symbol)
+      .toList
 
 }
