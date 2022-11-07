@@ -19,6 +19,7 @@ package com.armanbilge.sjmh
 import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 @EnableReflectiveInstantiation
 trait Bootstrapper {
@@ -30,6 +31,11 @@ trait Bootstrapper {
   def invokeBenchmark(instance: AnyRef, name: String): Future[Long]
 
   def newInstance(): AnyRef
+}
+
+object Timer {
+  def time(start: Long, benchmark: Future[AnyRef]): Future[Long] =
+    benchmark.map(_ => System.nanoTime() - start)(ExecutionContext.parasitic)
 }
 
 final class BenchmarkMetadata(
