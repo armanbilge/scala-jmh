@@ -21,7 +21,6 @@ lazy val compilerPlugin = project
   )
 
 lazy val runtime = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .crossType(CrossType.Pure)
   .in(file("runtime"))
   .settings(
     name := "scala-jmh-runtime",
