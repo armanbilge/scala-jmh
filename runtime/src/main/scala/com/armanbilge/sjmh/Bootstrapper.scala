@@ -25,7 +25,7 @@ trait Bootstrapper {
 
   def params(): Array[ParamMetadata]
   def benchmarks(): Array[BenchmarkMetadata]
-  def invokeBenchmark(instance: AnyRef, name: String, params: Array[String]): Future[Unit]
+  def invokeBenchmark(instance: AnyRef, name: String, params: Array[String]): Future[Long]
 
   def newInstance(): AnyRef
 }
