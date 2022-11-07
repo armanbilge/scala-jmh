@@ -104,6 +104,28 @@ class ScalaJmhBootstrappers extends PluginPhase {
     )
   }
 
+  private def genBenchmarkInvocation(
+      testClass: ClassSymbol,
+      testMethod: Symbol,
+      instance: Tree
+  )(using Context): Tree = {
+    val jmhdefn = JmhDefinitions.defnJmh
+
+    val resultType = testMethod.info.resultType
+    def returnsFuture = resultType.isRef(jmhdefn.FutureClass)
+
+    val future = if (returnsFuture) {
+      instance.select(testMethod).appliedToNone
+    } else {
+      Block(
+        instance.select(testMethod).appliedToNone :: Nil,
+        ref(jmhdefn.FutureModule_unit)
+      )
+    }
+
+    ref(jmhdefn.TimerModule_time).appliedToArgs()
+  }
+
   private def annotatedMethods(owner: ClassSymbol, annot: Symbol)(using
       Context,
   ): List[Symbol] =
