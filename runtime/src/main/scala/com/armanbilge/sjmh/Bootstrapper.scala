@@ -24,8 +24,10 @@ import scala.concurrent.Future
 trait Bootstrapper {
 
   def params(): Array[ParamMetadata]
+  def setParam(name: String, value: String): Unit
+
   def benchmarks(): Array[BenchmarkMetadata]
-  def invokeBenchmark(instance: AnyRef, name: String, params: Array[String]): Future[Long]
+  def invokeBenchmark(instance: AnyRef, name: String): Future[Long]
 
   def newInstance(): AnyRef
 }
