@@ -17,8 +17,10 @@
 package com.armanbilge.sjmh
 
 import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.Constants.*
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags.*
+import dotty.tools.dotc.core.Names.*
 import dotty.tools.dotc.core.Scopes.*
 import dotty.tools.dotc.core.StdNames.*
 import dotty.tools.dotc.core.Symbols.*
@@ -105,6 +107,57 @@ class ScalaJmhBootstrappers extends PluginPhase {
     )
   }
 
+  private def genInvokeBenchmark(
+      owner: ClassSymbol,
+      benchmarkClass: ClassSymbol,
+      benchmarks: List[Symbol],
+  )(using Context): DefDef = {
+    val jmhdefn = JmhDefinitions.defnJmh
+
+    val sym = newSymbol(
+      owner,
+      jmhNme.invokeBenchmark,
+      Synthetic | Method,
+      MethodType(
+        List(jmhNme.instance, jmhNme.name),
+        List(defn.ObjectType, defn.StringType),
+        jmhdefn.FutureType,
+      ),
+    ).entered
+
+    DefDef(
+      sym,
+      { (paramRefss: List[List[Tree]]) =>
+        val List(List(instanceParamRef, nameParamRef)) = paramRefss
+        val castInstanceSym = newSymbol(
+          sym,
+          jmhNme.castInstance,
+          Synthetic,
+          benchmarkClass.typeRef,
+          coord = owner.span,
+        )
+        Block(
+          ValDef(
+            castInstanceSym,
+            instanceParamRef.cast(benchmarkClass.typeRef),
+          ) :: Nil,
+          benchmarks.foldRight[Tree] {
+            val tp = jmhdefn.NoSuchMethodExceptionType
+            Throw(resolveConstructor(tp, nameParamRef :: Nil))
+          } { (benchmark, next) =>
+            If(
+              Literal(Constant(benchmark.name.mangledString))
+                .select(defn.Any_equals)
+                .appliedTo(nameParamRef),
+              genBenchmarkInvocation(benchmarkClass, benchmark, ref(castInstanceSym)),
+              next,
+            )
+          },
+        )
+      },
+    )
+  }
+
   private def genBenchmarkInvocation(
       benchmarkClass: ClassSymbol,
       benchmarkMethod: Symbol,
@@ -144,5 +197,13 @@ class ScalaJmhBootstrappers extends PluginPhase {
       .filter(_.symbol.hasAnnotation(annot))
       .map(_.symbol)
       .toList
+
+  private object jmhNme {
+    val invokeBenchmark: TermName = termName("invokeBenchmark")
+
+    val instance: TermName = termName("instance")
+    val name: TermName = termName("name")
+    val castInstance: TermName = termName("castInstance")
+  }
 
 }

@@ -54,6 +54,9 @@ final class JmhDefinitions()(using ctx: Context) {
   @threadUnsafe lazy val ParamMetadataType: TypeRef =
     requiredClassRef("com.armanbilge.sjmh.ParamMetadata")
 
+  @threadUnsafe lazy val NoSuchMethodExceptionType: TypeRef =
+    requiredClassRef("java.lang.NoSuchMethodException")
+
   @threadUnsafe lazy val FutureType: TypeRef =
     requiredClassRef("scala.concurrent.Future")
   def FutureClass(using Context): ClassSymbol = FutureType.symbol.asClass
