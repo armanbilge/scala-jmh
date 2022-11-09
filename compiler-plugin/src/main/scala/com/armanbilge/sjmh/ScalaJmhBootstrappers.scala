@@ -22,6 +22,7 @@ import dotty.tools.dotc.core.Flags.*
 import dotty.tools.dotc.core.Scopes.*
 import dotty.tools.dotc.core.StdNames.*
 import dotty.tools.dotc.core.Symbols.*
+import dotty.tools.dotc.core.Types.*
 import dotty.tools.dotc.plugins.PluginPhase
 import dotty.tools.dotc.sbt
 import dotty.tools.dotc.transform
@@ -105,25 +106,25 @@ class ScalaJmhBootstrappers extends PluginPhase {
   }
 
   private def genBenchmarkInvocation(
-      testClass: ClassSymbol,
-      testMethod: Symbol,
-      instance: Tree
+      benchmarkClass: ClassSymbol,
+      benchmarkMethod: Symbol,
+      instance: Tree,
   )(using Context): Tree = {
     val jmhdefn = JmhDefinitions.defnJmh
 
-    val resultType = testMethod.info.resultType
+    val resultType = benchmarkMethod.info.resultType
     def returnsFuture = resultType.isRef(jmhdefn.FutureClass)
 
     val future = if (returnsFuture) {
-      instance.select(testMethod).appliedToNone
+      instance.select(benchmarkMethod).appliedToNone
     } else {
       Block(
-        instance.select(testMethod).appliedToNone :: Nil,
-        ref(jmhdefn.FutureModule_unit)
+        instance.select(benchmarkMethod).appliedToNone :: Nil,
+        ref(jmhdefn.FutureModule_unit),
       )
     }
 
-    ref(jmhdefn.TimerModule_time).appliedToArgs()
+    Lambda(MethodType(Nil, jmhdefn.FutureType), _ => future)
   }
 
   private def annotatedMethods(owner: ClassSymbol, annot: Symbol)(using

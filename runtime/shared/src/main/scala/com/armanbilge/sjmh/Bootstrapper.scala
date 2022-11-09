@@ -28,14 +28,9 @@ trait Bootstrapper {
   def setParam(name: String, value: String): Unit
 
   def benchmarks(): Array[BenchmarkMetadata]
-  def invokeBenchmark(instance: AnyRef, name: String): Future[Long]
+  def invokeBenchmark(instance: AnyRef, name: String): Function0[Future[Unit]]
 
   def newInstance(): AnyRef
-}
-
-object Timer {
-  def time(start: Long, benchmark: Future[AnyRef]): Future[Long] =
-    benchmark.map(_ => System.nanoTime() - start)(ExecutionContext.parasitic)
 }
 
 final class BenchmarkMetadata(

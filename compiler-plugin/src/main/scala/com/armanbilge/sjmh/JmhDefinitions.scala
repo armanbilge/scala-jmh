@@ -62,8 +62,4 @@ final class JmhDefinitions()(using ctx: Context) {
     requiredModule("scala.concurrent.Future").requiredValueRef("unit")
   def FutureModule_unit(using Context): Symbol = FutureModule_unitR.symbol
 
-  @threadUnsafe private lazy val TimerModule_timeR =
-    requiredModule("com.armanbilge.sjmh.Timer").requiredMethodRef("time")
-  def TimerModule_time(using Context): Symbol = TimerModule_timeR.symbol
-
 }
