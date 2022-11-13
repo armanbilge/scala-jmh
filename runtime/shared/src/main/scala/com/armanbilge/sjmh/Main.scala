@@ -16,27 +16,8 @@
 
 package com.armanbilge.sjmh
 
-import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
+object Main {
 
-import scala.concurrent.Future
+  def main(args: Array[String]): Unit = {}
 
-@EnableReflectiveInstantiation
-trait Bootstrapper {
-
-  def params(): Array[ParamMetadata]
-  def setParam(name: String, value: String): Unit
-
-  def benchmarks(): Array[BenchmarkMetadata]
-  def invokeBenchmark(instance: AnyRef, name: String): Function0[Future[Unit]]
-
-  def newInstance(): AnyRef
 }
-
-final class BenchmarkMetadata(
-    val name: String,
-)
-
-final class ParamMetadata(
-    val name: String,
-    val values: Array[String],
-)

@@ -16,27 +16,11 @@
 
 package com.armanbilge.sjmh
 
-import org.portablescala.reflect.annotation.EnableReflectiveInstantiation
-
 import scala.concurrent.Future
 
-@EnableReflectiveInstantiation
-trait Bootstrapper {
+private final class BenchmarkSuiteRunner(suite: Bootstrapper) {
 
-  def params(): Array[ParamMetadata]
-  def setParam(name: String, value: String): Unit
+  def run(): Future[Unit] =
+    Future.unit
 
-  def benchmarks(): Array[BenchmarkMetadata]
-  def invokeBenchmark(instance: AnyRef, name: String): Function0[Future[Unit]]
-
-  def newInstance(): AnyRef
 }
-
-final class BenchmarkMetadata(
-    val name: String,
-)
-
-final class ParamMetadata(
-    val name: String,
-    val values: Array[String],
-)
